@@ -1,8 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { useBillingHook } from '@components/Header/useBillingHook'
@@ -256,8 +252,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								</Text>
 							</Box>
 						</LinkButton>
-					) : inProjectOrWorkspace ||
-					  projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
+					) : inProjectOrWorkspace || projectId === 'demo' ? (
 						<Box
 							display="flex"
 							alignItems="center"
@@ -713,7 +708,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 }
 
 const getBanner = (projectId: string) => {
-	if (projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
+	if (projectId === 'demo') {
 		return <DemoWorkspaceBanner />
 	}
 
@@ -737,7 +732,7 @@ const BillingBanner: React.FC = () => {
 	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
-		skip: !projectId || projectId === DEMO_PROJECT_ID,
+		skip: !projectId || projectId === 'demo',
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
@@ -817,6 +812,10 @@ const BillingBanner: React.FC = () => {
 		bannerMessage += ` You're approaching your monthly limit for ${productsToString(
 			productsApproachingQuota,
 		)}.`
+	}
+
+	if (moment().isAfter('2025-04-23T12:00:00Z')) {
+		return <AcquisitionBanner />
 	}
 
 	if (!bannerMessage && !hasTrial) {
@@ -940,6 +939,31 @@ const LaunchWeekBanner = () => {
 				Follow along
 			</a>{' '}
 			to see what we've been building!
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const AcquisitionBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			Highlight is now part of LaunchDarkly 🎉{' '}
+			<a
+				target="_blank"
+				href="https://www.highlight.io/blog/joining-launchdarkly?utm_source=highlight-app-banner"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Learn more on our blog.
+			</a>
 		</span>
 	)
 
